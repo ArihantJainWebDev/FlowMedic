@@ -856,3 +856,27 @@ h1 {
 @media(max-width:650px){.studio-shell{display:block}.studio-sidebar{width:100%;flex-direction:row;gap:4px;flex-wrap:wrap;border-bottom:1px solid #e0e6f2;padding:10px}.studio-sidebar .overline,.studio-sidebar-bottom,.studio-brand{display:none}.studio-shell .studio-sidebar>button{font-size:11px;padding:10px}}
 
 .studio-shell .studio-card-head>button{background:#f4f6fd;color:#53668e;border:1px solid #e0e6f2;font-size:11px;padding:8px 11px;white-space:nowrap}.studio-card-head{flex-wrap:wrap}
+
+/* FlowMedic Self-Healing PR & Repository Bar */
+.studio-repo-box{display:flex;align-items:center;gap:10px;background:#ffffff;border:1px solid #dce3f2;padding:6px 14px;border-radius:10px;font-size:13px}
+.studio-repo-label{font-size:11px;font-weight:700;color:#6b7c99;letter-spacing:0.5px;text-transform:uppercase}
+.studio-repo-input{border:0;outline:none;background:transparent;color:#18253e;font-weight:600;font-size:13px;min-width:220px}
+.studio-repo-input:focus{color:#4962df}
+.studio-quick-connect{background:#eef2ff!important;color:#4f6bf5!important;border:1px solid #d6e0ff!important;font-size:12px;padding:10px 14px!important;margin-left:8px}
+
+.studio-pr-card{background:linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);border:2px solid #6fa1f7;border-radius:16px;padding:20px 24px;margin-bottom:24px;box-shadow:0 8px 30px rgba(69, 104, 232, 0.08);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.studio-pr-info{flex:1;min-width:260px}
+.studio-pr-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:1px;color:#1a7f5a;background:#eaf8f1;border:1px solid #b7ebd3;padding:4px 10px;border-radius:20px;margin-bottom:8px}
+.studio-pr-info h3{font-size:17px;font-weight:700;margin:0 0 6px;color:#15233d}
+.studio-pr-meta{font-size:12px;color:#677898;line-height:1.5}
+.studio-pr-meta code{font-size:11px;background:#e9f0fc;padding:2px 6px;border-radius:5px;color:#2f4ba8}
+.studio-pr-checks{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;font-size:11px;color:#19835b;font-weight:600}
+.studio-pr-checks span{display:inline-flex;align-items:center;gap:4px}
+.studio-pr-actions{display:flex;align-items:center;gap:10px}
+.studio-btn-github{display:inline-flex;align-items:center;gap:6px;background:#24292f;color:#ffffff!important;text-decoration:none!important;padding:11px 16px;border-radius:9px;font-size:12px;font-weight:600;transition:opacity .15s}
+.studio-btn-github:hover{opacity:.9}
+.studio-btn-merge{background:#1f883d!important;color:#ffffff!important;border:0!important;padding:11px 18px!important;border-radius:9px!important;font-size:13px!important;font-weight:700!important;display:inline-flex;align-items:center;gap:7px;cursor:pointer;transition:background-color .15s}
+.studio-btn-merge:hover{background:#1a7f36!important}
+.studio-btn-merge:disabled{background:#77b889!important;opacity:.8;cursor:not-allowed}
+.studio-merged-banner{background:#eefbf3;border:1px solid #a3e6be;color:#156943;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin-top:12px}
+

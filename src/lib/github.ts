@@ -34,6 +34,15 @@ const pageSize = 50;
 const maxPages = 2;
 const maxBodyLength = 4000;
 
+function getGitHubHeaders(token: string) {
+  return {
+    Accept: "application/vnd.github+json",
+    Authorization: `Bearer ${token}`,
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "FlowMedic-Live",
+  };
+}
+
 export async function fetchRepositoryIssues(owner: string, repository: string, token: string) {
   const issues: NormalizedIssue[] = [];
 
@@ -46,11 +55,7 @@ export async function fetchRepositoryIssues(owner: string, repository: string, t
     endpoint.searchParams.set("page", String(page));
 
     const response = await fetch(endpoint, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
+      headers: getGitHubHeaders(token),
       signal: AbortSignal.timeout(8_000),
       cache: "no-store",
     });
@@ -95,4 +100,237 @@ export async function fetchRepositoryIssues(owner: string, repository: string, t
   }
 
   return issues;
+}
+
+export async function getDefaultBranchDetails(owner: string, repository: string, token: string) {
+  const repoRes = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`,
+    {
+      headers: getGitHubHeaders(token),
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    },
+  );
+  if (!repoRes.ok) {
+    throw new GitHubRequestError(`Failed to load repository ${owner}/${repository}`, repoRes.status);
+  }
+  const repoData = (await repoRes.json()) as { default_branch?: string };
+  const defaultBranch = repoData.default_branch || "main";
+
+  const refRes = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/git/ref/heads/${encodeURIComponent(defaultBranch)}`,
+    {
+      headers: getGitHubHeaders(token),
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    },
+  );
+  if (!refRes.ok) {
+    throw new GitHubRequestError(`Failed to load default branch ref for ${defaultBranch}`, refRes.status);
+  }
+  const refData = (await refRes.json()) as { object: { sha: string } };
+  return { defaultBranch, baseSha: refData.object.sha };
+}
+
+export async function createBranch(
+  owner: string,
+  repository: string,
+  token: string,
+  branchName: string,
+  baseSha: string,
+) {
+  const response = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/git/refs`,
+    {
+      method: "POST",
+      headers: { ...getGitHubHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ref: `refs/heads/${branchName}`,
+        sha: baseSha,
+      }),
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    },
+  );
+
+  if (response.status === 422) {
+    // Branch may already exist
+    return { created: false, branchName };
+  }
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new GitHubRequestError(`Failed to create branch ${branchName}: ${errorBody}`, response.status);
+  }
+  return { created: true, branchName };
+}
+
+export async function createOrUpdateFile(
+  owner: string,
+  repository: string,
+  token: string,
+  path: string,
+  content: string,
+  message: string,
+  branch: string,
+) {
+  // Check if file exists to get current sha for update
+  let sha: string | undefined;
+  try {
+    const checkRes = await fetch(
+      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`,
+      {
+        headers: getGitHubHeaders(token),
+        signal: AbortSignal.timeout(8_000),
+        cache: "no-store",
+      },
+    );
+    if (checkRes.ok) {
+      const existing = (await checkRes.json()) as { sha?: string };
+      sha = existing.sha;
+    }
+  } catch {
+    // File doesn't exist yet
+  }
+
+  const response = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/contents/${encodeURIComponent(path)}`,
+    {
+      method: "PUT",
+      headers: { ...getGitHubHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        content: Buffer.from(content).toString("base64"),
+        branch,
+        ...(sha ? { sha } : {}),
+      }),
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new GitHubRequestError(`Failed to commit file ${path}: ${errorBody}`, response.status);
+  }
+  return (await response.json()) as { content?: { path?: string; sha?: string } };
+}
+
+export interface PullRequestResult {
+  number: number;
+  htmlUrl: string;
+  title: string;
+  state: string;
+  head: string;
+  base: string;
+}
+
+export async function createPullRequest(
+  owner: string,
+  repository: string,
+  token: string,
+  input: {
+    title: string;
+    body: string;
+    head: string;
+    base?: string;
+  },
+): Promise<PullRequestResult> {
+  const base = input.base || "main";
+  const response = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/pulls`,
+    {
+      method: "POST",
+      headers: { ...getGitHubHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: input.title,
+        body: input.body,
+        head: input.head,
+        base,
+      }),
+      signal: AbortSignal.timeout(12_000),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    // If PR already exists for branch, find it
+    if (response.status === 422) {
+      const listRes = await fetch(
+        `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/pulls?head=${encodeURIComponent(owner)}:${encodeURIComponent(input.head)}&state=open`,
+        {
+          headers: getGitHubHeaders(token),
+          signal: AbortSignal.timeout(8_000),
+          cache: "no-store",
+        },
+      );
+      if (listRes.ok) {
+        const list = (await listRes.json()) as Array<{
+          number: number;
+          html_url: string;
+          title: string;
+          state: string;
+        }>;
+        if (list.length > 0) {
+          return {
+            number: list[0].number,
+            htmlUrl: list[0].html_url,
+            title: list[0].title,
+            state: list[0].state,
+            head: input.head,
+            base,
+          };
+        }
+      }
+    }
+    const errorBody = await response.text();
+    throw new GitHubRequestError(`Failed to create pull request: ${errorBody}`, response.status);
+  }
+
+  const data = (await response.json()) as {
+    number: number;
+    html_url: string;
+    title: string;
+    state: string;
+  };
+  return {
+    number: data.number,
+    htmlUrl: data.html_url,
+    title: data.title,
+    state: data.state,
+    head: input.head,
+    base,
+  };
+}
+
+export async function mergePullRequest(
+  owner: string,
+  repository: string,
+  token: string,
+  pullNumber: number,
+  commitTitle?: string,
+) {
+  const response = await fetch(
+    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/pulls/${pullNumber}/merge`,
+    {
+      method: "PUT",
+      headers: { ...getGitHubHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        commit_title: commitTitle || `Merge pull request #${pullNumber} (FlowMedic self-healing)`,
+        merge_method: "squash",
+      }),
+      signal: AbortSignal.timeout(12_000),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new GitHubRequestError(`Failed to merge pull request #${pullNumber}: ${errorBody}`, response.status);
+  }
+
+  return (await response.json()) as {
+    sha: string;
+    merged: boolean;
+    message: string;
+  };
 }

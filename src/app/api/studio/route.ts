@@ -6,8 +6,11 @@ export async function GET(request: Request) {
     return Response.json({ error: { message: "Unauthorized" } }, { status: 401, headers });
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const repository =
+    const url = new URL(request.url);
+    const queryRepo = url.searchParams.get("repository")?.trim().toLowerCase();
+    const defaultRepo =
       `${process.env.GITHUB_OWNER?.trim()}/${process.env.GITHUB_REPOSITORY?.trim()}`.toLowerCase();
+    const repository = queryRepo && queryRepo.includes("/") ? queryRepo : defaultRepo;
     const runs = await sql`SELECT r.id,r.status,r.started_at,r.finished_at,r.summary,
  COALESCE((SELECT jsonb_agg(jsonb_build_object('step_key',s.step_key,'status',s.status,'duration_ms',s.duration_ms,'error_code',s.error_code,'safe_output',s.safe_output) ORDER BY s.sequence) FROM workflow_steps s WHERE s.run_id=r.id),'[]'::jsonb) AS steps
  FROM workflow_runs r WHERE repository=${repository} ORDER BY started_at DESC LIMIT 20`;
