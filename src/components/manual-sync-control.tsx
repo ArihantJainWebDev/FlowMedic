@@ -25,21 +25,34 @@ export function ManualSyncControl() {
   const [loading, setLoading] = useState(false);
   const [readiness, setReadiness] = useState<ServiceReadiness | null>(null);
   const [result, setResult] = useState<SyncResult | null>(null);
+  const [missing, setMissing] = useState<string[]>([]);
+  const [configurationError, setConfigurationError] = useState(false);
 
   useEffect(() => {
     let active = true;
     fetch("/api/health", { cache: "no-store" })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error("Health unavailable");
+        return response.json();
+      })
       .then((payload) => {
-        if (active && payload.integrations) setReadiness(payload.integrations);
+        if (!payload.integrations) throw new Error("Invalid health response");
+        if (active) {
+          setConfigurationError(false);
+          setReadiness(payload.integrations);
+          setMissing(payload.missingConfiguration ?? []);
+        }
       })
       .catch(() => {
-        if (active) setReadiness(null);
+        if (active) {
+          setReadiness(null);
+          setConfigurationError(true);
+        }
       });
     return () => {
       active = false;
     };
-  }, []);
+  }, [open]);
 
   async function startSync(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,12 +96,16 @@ export function ManualSyncControl() {
 
           <div className="sync-connections" aria-label="Service configuration">
             <span className={readiness?.githubToken && readiness.repository ? "configured" : "missing"}>
-              <i /> GitHub {readiness?.githubToken && readiness.repository ? "configured" : "setup needed"}
+              <i /> GitHub {!readiness ? "checking" : readiness.githubToken && readiness.repository ? "configured" : "setup needed"}
             </span>
             <span className={readiness?.database ? "configured" : "missing"}>
-              <i /> Neon {readiness?.database ? "configured" : "setup needed"}
+              <i /> Neon {!readiness ? "checking" : readiness.database ? "configured" : "setup needed"}
             </span>
           </div>
+
+          {configurationError && <p className="sync-error" role="alert">Could not check server settings. Refresh the page to retry.</p>}
+          {readiness && missing.length > 0 && <p className="sync-error" role="alert">Server is missing: {missing.join(", ")}. Save these in the project’s .env.local and restart the server.</p>}
+          <p className="sync-hint">Configured means settings are present. Access is verified when you run a sync.</p>
 
           <form onSubmit={startSync}>
             <label className="sync-token-label" htmlFor="run-token">

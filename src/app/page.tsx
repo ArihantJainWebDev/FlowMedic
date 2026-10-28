@@ -1,3 +1,6 @@
+import { connection } from "next/server";
+import { getConfiguration } from "@/lib/configuration";
+
 const mainNavigation = [
   { icon: "⌂", label: "Overview", active: true },
   { icon: "◷", label: "Run history" },
@@ -65,7 +68,10 @@ function Navigation({ mobile = false }: { mobile?: boolean }) {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  await connection();
+  const { integrations, missing } = getConfiguration();
+  const githubConfigured = integrations.githubToken && integrations.repository;
   return (
     <div className="app-frame" id="overview">
       <aside className="sidebar">
@@ -102,7 +108,7 @@ export default function Home() {
           </div>
           <div className="topbar-right">
             <span className="connection-state">
-              <i className="connection-dot" /> No repository connected
+              <i className="connection-dot" /> {githubConfigured ? "GitHub configured · sync to verify" : "GitHub setup needed"}
             </span>
             <ManualSyncControl />
           </div>
@@ -119,7 +125,7 @@ export default function Home() {
               </p>
             </div>
             <a className="setup-button" href="#connections">
-              <span aria-hidden="true">＋</span> Connect your first service
+              <span aria-hidden="true">＋</span> Review service setup
             </a>
           </section>
 
@@ -131,14 +137,14 @@ export default function Home() {
                   <p>Your real workflow and recovery path will appear here.</p>
                 </div>
                 <span className="state-pill">
-                  <i /> Awaiting connection
+                  <i /> {missing.length ? "Setup required" : "Ready for manual sync"}
                 </span>
               </header>
 
               <div className="canvas">
                 <div
                   className="flow-row"
-                  aria-label="Planned source-to-destination path; integrations are not connected"
+                  aria-label="Source-to-destination path; configuration does not verify connectivity"
                 >
                   <article className="flow-node">
                     <div className="node-top">
@@ -149,7 +155,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="node-status">
-                      <b>Not connected</b>
+                      <b>{githubConfigured ? "Configured · not verified" : "Setup needed"}</b>
                       <span>01</span>
                     </div>
                   </article>
@@ -163,7 +169,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="node-status">
-                      <b>Ready to configure</b>
+                      <b>Ready for sync</b>
                       <span>02</span>
                     </div>
                   </article>
@@ -177,7 +183,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="node-status">
-                      <b>Not connected</b>
+                      <b>{integrations.database ? "Configured · not verified" : "Setup needed"}</b>
                       <span>03</span>
                     </div>
                   </article>
@@ -202,7 +208,7 @@ export default function Home() {
               <section className="rail-panel" aria-labelledby="execution-title">
                 <div className="rail-head">
                   <strong id="execution-title">Live execution rail</strong>
-                  <span>No run yet · connect a source to begin</span>
+                  <span>Start a manual sync to see its result</span>
                 </div>
                 <div
                   className="progress-steps"
@@ -246,15 +252,15 @@ export default function Home() {
                 <h3>Connection setup</h3>
                 <div className="connection-row">
                   <span>GitHub Issues</span>
-                  <span>Not connected</span>
+                  <span>{githubConfigured ? "Configured" : "Setup needed"}</span>
                 </div>
                 <div className="connection-row">
                   <span>Neon Postgres</span>
-                  <span>Not connected</span>
+                  <span>{integrations.database ? "Configured" : "Setup needed"}</span>
                 </div>
                 <div className="connection-row">
                   <span>AI diagnosis</span>
-                  <span>Not configured</span>
+                  <span>{integrations.llm ? "Configured" : "Setup needed"}</span>
                 </div>
               </section>
               <div className="lock-note">

@@ -6,7 +6,7 @@ FlowMedic Live is a Vercel-deployable Next.js application for showing real workf
 
 ## Current status
 
-Phase 00 foundation is **complete** and recorded in [`docs/PHASES/phase-00.md`](docs/PHASES/phase-00.md). Phases 01–03 are **in progress**: the GitHub-to-Neon sync path, run/step records, incident/audit capture, protected incident APIs, deterministic proposal validation, and Recovery Studio sync control are implemented. Neon tables exist, but no live GitHub sync, controlled failure, or model proposal has been verified; migration 0003 and GitHub access are still pending.
+Phase 00 foundation is **complete** and recorded in [`docs/PHASES/phase-00.md`](docs/PHASES/phase-00.md). Phases 01–03 are **in progress**: the GitHub-to-Neon sync path, run/step records, incident/audit capture, protected incident APIs, deterministic proposal validation, and Recovery Studio sync control are implemented. A user screenshot confirms a successful live sync for `t4zn/flowmedic-demo-source`: 6 fetched, 6 upserted, 6 stored. Repeat-sync verification, controlled failure, and a live model proposal remain pending; migration 0003 application is not yet confirmed.
 
 ## Run locally
 

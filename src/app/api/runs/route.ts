@@ -83,6 +83,12 @@ export async function POST(request: Request) {
       ? error.code
       : "";
     const schemaDrift = activeStep === "upsert_issues" && pgCode === "42703";
+    console.error("FlowMedic sync failed", {
+      correlationId,
+      step: activeStep,
+      sqlState: /^[0-9A-Z]{5}$/.test(pgCode) ? pgCode : undefined,
+      githubStatus: error instanceof GitHubRequestError ? error.status : undefined,
+    });
     let safeMessage = schemaDrift
       ? "The destination schema is missing the expected issue_title field."
       : error instanceof GitHubRequestError

@@ -4,6 +4,14 @@ All notable implementation and documentation changes are recorded here. Keep ent
 
 ## Unreleased
 
+- User-provided screenshot confirms the first successful live GitHub-to-Neon sync: 6 fetched, 6 upserted, 6 stored for `t4zn/flowmedic-demo-source`. Repeat-sync verification is pending.
+
+- Verified the corrected audit JSON expression against Neon with one read-only query; it passed.
+
+- Fixed PostgreSQL `42P18` in audit JSON construction by explicitly typing bound text parameters for step completion, run completion, incident transitions, and proposal audit records. Read-only diagnosis reproduced the untyped-parameter error and confirmed GitHub HTTP 200. Added safe sync error logs with correlation ID and error codes; no full sync rerun is claimed.
+
+- Fixed dashboard service labels to read server configuration at request time instead of always showing disconnected placeholders. The sync popup refreshes configuration on opening and reports missing variable names or a failed health request without exposing values. No live sync or automated checks were run for this change.
+
 - Created the initial implementation-ready architecture, model-routing guidance, phased plan, and UI design documentation.
 - Recorded the public demo source repository `t4zn/flowmedic-demo-source` in the Phase 01 setup guide. No credentials were added to the repository or docs.
 

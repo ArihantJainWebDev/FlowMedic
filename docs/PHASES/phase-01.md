@@ -38,6 +38,14 @@ The current token field is a prototype operator gate, not multi-user authenticat
 
 ## Completion record
 
+- Live sync evidence: User screenshot confirms a successful sync for `t4zn/flowmedic-demo-source` with 6 fetched, 6 upserted, and 6 stored. This verifies the real GitHub-to-Neon path after the audit parameter fix. Repeat-sync verification remains pending, so the phase stays IN PROGRESS.
+
+- Targeted verification: The corrected audit JSON expression with explicit text casts succeeded against Neon in a read-only query. Full workflow and repeat-sync verification are still pending.
+
+- Sync failure follow-up: GitHub read returned HTTP 200; latest saved fetch step remained running. A read-only audit-expression probe reproduced PostgreSQL `42P18`. Added explicit text casts to bound audit JSON values and safe correlation/error-code logging. No full sync rerun was performed; normal/repeat sync exit evidence remains pending.
+
+- Follow-up UI fix: Dashboard configuration labels now reflect server settings at request time; health and dashboard share a server-only configuration helper. The sync popup rechecks settings on opening and distinguishes missing variable names from health-request failures. Configuration presence is explicitly separate from verified service access. No automated checks or live sync were run for this fix; Phase 01 remains IN PROGRESS.
+
 - Status: IN PROGRESS
 - Actual start/end/duration: Started 2026-10-28; elapsed time not recorded.
 - Implemented: Server-only GitHub client in `src/lib/github.ts`; Neon persistence in `src/lib/database.ts`; protected manual sync endpoint in `src/app/api/runs/route.ts`; Phase 01 schema in `db/migrations/0001_phase_01_source_sync.sql`; phase setup notes in `db/migrations/README.md`.

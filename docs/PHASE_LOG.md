@@ -15,6 +15,12 @@ This is the project-wide source of truth for phase status. Update it after every
 
 ## Status definitions
 
+Live sync evidence: User screenshot confirms GitHub-to-Neon sync succeeded for `t4zn/flowmedic-demo-source`: 6 fetched, 6 upserted, 6 stored. Phase 01 remains IN PROGRESS until a repeat sync confirms the stored count remains stable.
+
+Sync failure diagnosis: GitHub read access succeeded; read-only audit SQL probe reproduced `42P18`. Audit parameter casts were corrected. Phase 01 remains IN PROGRESS pending a successful normal and repeat sync.
+
+Configuration UI follow-up: Replaced fixed disconnected labels with server configuration flags and added explicit missing-setting feedback in the sync popup. Live sync verification is still pending; no phase status changed.
+
 - **NOT STARTED:** no implementation work recorded.
 - **IN PROGRESS:** work started; exit criteria remain.
 - **BLOCKED:** cannot proceed; specific dependency, owner, and next action required.

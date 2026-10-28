@@ -89,7 +89,7 @@ export async function finishStep(
     ), audited AS (
       INSERT INTO audit_events (entity_type, entity_id, run_id, correlation_id, action, actor_type, details)
       SELECT 'step', id, run_id, ${correlationId}, ${`step_${status}`}, 'system',
-        jsonb_build_object('stepKey', step_key, 'errorCode', ${errorCode ?? null}, 'errorClass', ${errorClass ?? null})
+        jsonb_build_object('stepKey', step_key, 'errorCode', ${errorCode ?? null}::text, 'errorClass', ${errorClass ?? null}::text)
       FROM changed
       RETURNING id
     )
@@ -112,7 +112,7 @@ export async function finishRun(
       RETURNING id, correlation_id
     ), audited AS (
       INSERT INTO audit_events (entity_type, entity_id, run_id, correlation_id, action, actor_type, details)
-      SELECT 'run', id, id, ${correlationId}, ${`run_${status}`}, 'system', jsonb_build_object('summary', ${summary})
+      SELECT 'run', id, id, ${correlationId}, ${`run_${status}`}, 'system', jsonb_build_object('summary', ${summary}::text)
       FROM changed
       RETURNING id
     )
@@ -206,7 +206,7 @@ export async function captureSchemaDriftIncident(input: {
       INSERT INTO audit_events (entity_type, entity_id, run_id, correlation_id, action, actor_type, details)
       SELECT 'incident', id, run_id, ${input.correlationId},
         CASE WHEN is_new THEN 'incident_detected' ELSE 'incident_repeated' END,
-        'system', jsonb_build_object('errorCode', '42703', 'fingerprint', ${input.fingerprint}, 'occurrenceCount', occurrence_count)
+        'system', jsonb_build_object('errorCode', '42703', 'fingerprint', ${input.fingerprint}::text, 'occurrenceCount', occurrence_count)
       FROM changed
       RETURNING id
     )
@@ -269,7 +269,7 @@ export async function transitionIncident(input: {
       INSERT INTO audit_events (entity_type, entity_id, run_id, correlation_id, action, actor_type, details)
       SELECT 'incident', id, run_id, ${input.correlationId}, 'incident_transition',
         ${input.actorType ?? "system"},
-        jsonb_build_object('from', ${input.expectedStatus}, 'to', status, 'version', version)
+        jsonb_build_object('from', ${input.expectedStatus}::text, 'to', status, 'version', version)
       FROM changed
       RETURNING id
     )
@@ -360,7 +360,7 @@ export async function saveRepairProposal(input: {
     ), audited AS (
       INSERT INTO audit_events (entity_type, entity_id, correlation_id, action, actor_type, details)
       SELECT 'incident', incident_id, ${input.correlationId}, 'repair_proposal_created', 'system',
-        jsonb_build_object('proposalId', id, 'validationStatus', status, 'schemaVersion', ${input.schemaVersion})
+        jsonb_build_object('proposalId', id, 'validationStatus', status, 'schemaVersion', ${input.schemaVersion}::text)
       FROM inserted
       RETURNING id
     )
