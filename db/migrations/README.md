@@ -9,3 +9,6 @@ Store ordered SQL migrations here as `<four-digit-sequence>_<short_name>.sql` (f
 `0002_incidents_audit.sql` depends on migration 0001 and adds incident, audit, run-correlation, and step-timing fields. Apply it after 0001 and before exercising the current manual sync route. The current route persists run and step audit checkpoints using these added columns.
 
 `0003_repair_proposals.sql` depends on migrations 0001 and 0002. It stores bounded model proposals, deterministic validation results, provider/model metadata, prompt/schema versions, and usage/latency metadata. Apply it before calling `POST /api/incidents/:incidentId/diagnose`.
+
+## Phase 04
+Apply 0004_approval_replay.sql after 0003 before new syncs. Adds snapshots, approvals, replay attempts and an invoker transaction function. Runtime role grants and acceptance are in docs/TEAMMATE_HANDOFF.md. No migration applied automatically.

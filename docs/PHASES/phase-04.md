@@ -1,39 +1,22 @@
 # Phase 04 — Human approval and safe replay
 
-**Planned time:** 45 minutes · **Status:** NOT STARTED
-
-## Objective
-
-Require an authenticated human to approve the exact validated proposal, then replay once idempotently and verify the destination.
+**Status: IN PROGRESS — implementation delivered; live acceptance pending.**
 
 ## Checklist
+- [x] Original issue snapshot, approval and replay records in migration 0004.
+- [x] Authenticated action endpoint, origin check, strict proposal parsing, canonical hash and current-schema validation.
+- [x] Approval binds actor, proposal ID/hash and incident version. Row locks serialize actions; stale approvals and repeated attempts are refused.
+- [x] Fixed allowlisted SQL replays the original snapshot with unique destination keys, verifies imported fields and records terminal status/audit in one transaction.
+- [x] Failure rolls back destination writes, records replay_failed and prevents further attempts for that incident.
+- [ ] Live approval/rejection, stale/concurrent request, recovery and duplicate replay acceptance.
 
-- [ ] Add proposal approval/rejection records and immutable proposal hash.
-- [ ] Bind approval to actor, proposal hash, incident version, and validation result.
-- [ ] Enforce authenticated action, current state, and stale-version rejection.
-- [ ] Generate SQL from code-owned validated identifiers; parameterize issue values.
-- [ ] Use original run/issue idempotency key and unique destination key on replay.
-- [ ] Bound replay attempt count; reject duplicate or concurrent replay.
-- [ ] Read back and verify destination row before marking recovered.
-- [ ] Record approval, replay attempt, and terminal outcome in append-only audit.
+## Entrance / exit criteria
+Apply migrations 0001–0004. Create a fresh controlled-drift incident with an original source snapshot and a validated Phase 03 proposal. Exit requires proving rejection and missing/stale approval block replay, approved replay verifies destination rows, and repeat/concurrent requests cannot duplicate replay.
 
-## Entrance criteria
+## Decisions
+Prototype identity is shared-operator via the existing bearer secret; individual sessions are deferred. Browser token is memory-only. Approval records have no update/delete application API. The invoker function has PUBLIC execute revoked; separate runtime roles need explicit grants. Phase 06 handles database role hardening.
 
-- Phase 03 complete; dashboard authentication and proposal validation available.
+Replay supports only issue_title → title, using fixed SQL without model-generated identifiers. Original failed runs remain historical after recovery. One attempt per incident; failures need investigation and a fresh incident. Snapshot bodies stay in the private database and are excluded from UI, audit and model prompts. Clear disposable data after the hackathon.
 
-## Exit criteria
-
-- Replay is impossible before approval and impossible for an altered/stale proposal.
-- Approved mapping succeeds and verifies; repeating replay creates no duplicate.
-- Rejection and replay failure have clear persisted states.
-
-## Completion record
-
-- Status: NOT STARTED
-- Actual start/end/duration: —
-- Implemented: —
-- Deviations and decisions: —
-- Verification: —
-- Evidence: —
-- Blockers / owner / next action: —
-- Known gaps carried forward: —
+## Verification and handoff
+TypeScript passed. No migration was applied or live approval/replay performed by the agent. Existing incidents without snapshots cannot replay. See `docs/TEAMMATE_HANDOFF.md`. Update this record, PHASE_LOG and CHANGELOG after acceptance.

@@ -4,6 +4,15 @@ All notable implementation and documentation changes are recorded here. Keep ent
 
 ## Unreleased
 
+### Phase 04–05 implementation
+- Added bound approval/rejection, original snapshots, one-attempt transactional replay with destination readback and audit, action API and migration 0004.
+- Added light React Flow workspace, protected history, persisted progress, proposal inspector and bounded polling.
+- Verified TypeScript. No live migration/replay or browser acceptance performed; both phases remain IN PROGRESS.
+- See docs/TEAMMATE_HANDOFF.md. Apply 0004 before further syncs.
+
+
+- Phase 01 completed: second user screenshot confirms a distinct successful sync with 6 fetched, 6 upserted, and 6 stored. Destination count remained stable across runs. Updated phase record, phase log, and README; Phase 02 controlled-failure verification is next.
+
 - User-provided screenshot confirms the first successful live GitHub-to-Neon sync: 6 fetched, 6 upserted, 6 stored for `t4zn/flowmedic-demo-source`. Repeat-sync verification is pending.
 
 - Verified the corrected audit JSON expression against Neon with one read-only query; it passed.

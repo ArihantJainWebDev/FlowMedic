@@ -1,43 +1,23 @@
-# Phase 05 — Recovery Studio workflow canvas
+# Phase 05 — Live light Recovery Studio
 
-**Planned time:** 60 minutes · **Status:** NOT STARTED
-
-**Design reference:** [`docs/UI_DESIGN.md`](../UI_DESIGN.md)
-
-## Objective
-
-Build a polished operator workspace inspired by node-based workflow canvases: show each real step progressing through the sync and recovery path, with a live execution rail and contextual inspector. Make incident evidence, safe approval, and recovery understandable at a glance.
+**Status: IN PROGRESS — implementation delivered; browser/live acceptance pending.**
 
 ## Checklist
+- [x] Responsive LIGHT shell, React Flow topology with pan/zoom, history and inspector.
+- [x] Protected recent-run API, persisted step statuses, completed duration and factual execution rail.
+- [x] Incident evidence, mapping diff, validation checks, approval confirmation, rejection, separate replay and audit timeline.
+- [x] Memory-only operator session; disconnect clears private data.
+- [x] Poll active work every two seconds, back off on errors, stop after three failures or 60 active polls, stop on terminal/idle state.
+- [x] Empty/loading/error/stale states, manual refresh, keyboard controls and reduced-motion styling.
+- [ ] Browser/mobile and live recovery acceptance.
 
-- [ ] Build responsive dark Recovery Studio shell with accessible contrast, quiet canvas grid, toolbar, and status labels.
-- [ ] Render React Flow topology for GitHub → normalize/map → Postgres and a visible incident → diagnose → validate → approval → replay recovery path.
-- [ ] Display real active step, elapsed time, finished/failed/queued counts, and factual event sequence; never estimate progress by time.
-- [ ] Persist step-start and step-terminal events, and advance one server-authorized bounded step per request.
-- [ ] Drive node/edge status from persisted run/step status, not timer-only animation.
-- [ ] Add run history, incident detail, sanitized payload/error, diagnosis, and timeline.
-- [ ] Add proposal mapping diff, validation evidence, approve/reject confirmation, replay status.
-- [ ] Poll run/incident endpoints with bounded backoff and stop on terminal state.
-- [ ] Include loading, empty, stale, failure, and permission-denied states.
-- [ ] Ensure keyboard operation and clear destructive-action labeling.
+## Entrance / exit criteria
+Backend migrations and provider settings must be ready. Exit requires normal sync, controlled failure, proposal, approval/rejection and verified replay visible in browser using actual saved state.
 
-## Entrance criteria
+## Decisions / deviations
+The user-selected light theme supersedes the original dark-shell checklist. Existing bounded sync still processes fetch and upsert in one request with durable checkpoints; diagnosis and approve/reject/replay each use separate requests. Splitting fetch/upsert into separate requests is deferred to preserve the working sync contract. Normalize completes with the fetch/normalization checkpoint; it is not a separately measured step. No fake timer progress is used. Fast stages may finish between polls.
 
-- Phases 01–04 provide stable APIs and seeded real workflow states.
+An approved incident retains awaiting_approval until replay; the UI displays Approved / replay ready. Failed original write nodes stay failed after recovery. No unsupported cancellation controls are presented. Historical stuck runs remain visible, with bounded polling.
 
-## Exit criteria
-
-- Dashboard communicates success, live failure, approval wait, and recovery from real server state.
-- Operator can trigger sync, inspect incident, approve/reject, and follow replay.
-- Demo UI never implies an unperformed repair succeeded.
-
-## Completion record
-
-- Status: NOT STARTED
-- Actual start/end/duration: —
-- Implemented: —
-- Deviations and decisions: —
-- Verification: —
-- Evidence: —
-- Blockers / owner / next action: —
-- Known gaps carried forward: —
+## Verification / handoff
+TypeScript passed. No browser walkthrough or live replay was performed. See `docs/TEAMMATE_HANDOFF.md`; record actual results before marking complete and update PHASE_LOG and CHANGELOG.

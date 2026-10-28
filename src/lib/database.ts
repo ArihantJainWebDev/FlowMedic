@@ -276,7 +276,12 @@ export async function transitionIncident(input: {
     SELECT id, status, version FROM changed
   `;
   return result[0]
-    ? { updated: true, id: result[0].id as string, status: result[0].status as IncidentStatus, version: Number(result[0].version) }
+    ? {
+        updated: true,
+        id: result[0].id as string,
+        status: result[0].status as IncidentStatus,
+        version: Number(result[0].version),
+      }
     : { updated: false as const };
 }
 
@@ -289,6 +294,19 @@ export async function listIncidents(repository: string, limit: number) {
     ORDER BY last_seen_at DESC LIMIT ${limit}
   `;
 }
+
+type IncidentRecord = {
+  id: string;
+  run_id: string;
+  step_id: string;
+  repository: string;
+  status: IncidentStatus;
+  error_code: string;
+  error_class: string;
+  safe_summary: string;
+  evidence: Record<string, unknown>;
+  version: number;
+};
 
 export async function getIncident(incidentId: string, repository: string) {
   const sql = getSql();
@@ -309,7 +327,7 @@ export async function getIncident(incidentId: string, repository: string) {
     FROM repair_proposals WHERE incident_id = ${incidentId}
     ORDER BY created_at DESC LIMIT 5
   `;
-  return { ...incidents[0], timeline, proposals };
+  return { ...(incidents[0] as IncidentRecord), timeline, proposals };
 }
 
 export async function getTargetColumns(): Promise<TargetColumn[]> {

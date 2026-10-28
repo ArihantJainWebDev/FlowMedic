@@ -6,7 +6,7 @@ FlowMedic Live is a Vercel-deployable Next.js application for showing real workf
 
 ## Current status
 
-Phase 00 foundation is **complete** and recorded in [`docs/PHASES/phase-00.md`](docs/PHASES/phase-00.md). Phases 01–03 are **in progress**: the GitHub-to-Neon sync path, run/step records, incident/audit capture, protected incident APIs, deterministic proposal validation, and Recovery Studio sync control are implemented. A user screenshot confirms a successful live sync for `t4zn/flowmedic-demo-source`: 6 fetched, 6 upserted, 6 stored. Repeat-sync verification, controlled failure, and a live model proposal remain pending; migration 0003 application is not yet confirmed.
+Phase 00 foundation is **complete** and recorded in [`docs/PHASES/phase-00.md`](docs/PHASES/phase-00.md). Phase 01 is **complete**, with normal and repeat syncs both showing 6 stored issues. Phases 02–03 are **in progress**: the GitHub-to-Neon sync path, run/step records, incident/audit capture, protected incident APIs, deterministic proposal validation, and Recovery Studio sync control are implemented. A user screenshot confirms a successful live sync for `t4zn/flowmedic-demo-source`: 6 fetched, 6 upserted, 6 stored. Controlled failure and a live model proposal remain pending; migration 0003 application is not yet confirmed.
 
 ## Run locally
 
@@ -60,3 +60,6 @@ docs/                     Architecture, phase plan, decisions, and evidence log
 - [Changelog](CHANGELOG.md)
 
 At the end of every phase, update its phase record, `docs/PHASE_LOG.md`, and `CHANGELOG.md` before beginning the next phase. Record only checks actually run and results actually observed.
+
+## Phase 04–05 handoff
+Light React Flow workspace and approval/replay APIs implemented. Apply migration 0004 before new syncs. Live acceptance pending: see [teammate handoff](docs/TEAMMATE_HANDOFF.md). Phases 04–05 remain IN PROGRESS.
