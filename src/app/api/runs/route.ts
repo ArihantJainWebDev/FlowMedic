@@ -12,6 +12,7 @@ import {
   upsertIssues,
 } from "@/lib/database";
 import { fetchRepositoryIssues, GitHubRequestError } from "@/lib/github";
+import { executeSelfHealingWorkflow } from "@/lib/self-heal";
 
 export const maxDuration = 30;
 
@@ -53,8 +54,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const owner = process.env.GITHUB_OWNER?.trim();
-  const repositoryName = process.env.GITHUB_REPOSITORY?.trim();
+  let owner = process.env.GITHUB_OWNER?.trim() || "";
+  let repositoryName = process.env.GITHUB_REPOSITORY?.trim() || "";
+  try {
+    const clone = request.clone();
+    const body = (await clone.json()) as { repository?: string };
+    if (typeof body?.repository === "string" && body.repository.includes("/")) {
+      const [o, r] = body.repository.trim().split("/");
+      if (o && r) {
+        owner = o.trim();
+        repositoryName = r.trim();
+      }
+    }
+  } catch {}
+
   const token = process.env.GITHUB_TOKEN?.trim();
   if (!process.env.DATABASE_URL?.trim() || !owner || !repositoryName || !token) {
     return errorResponse(
@@ -130,12 +143,67 @@ export async function POST(request: Request) {
       { writtenCount, storedCount },
       correlationId,
     );
-    await finishRun(
-      run.id,
-      "succeeded",
-      `Fetched ${issues.length}; upserted ${writtenCount}; ${storedCount} stored.`,
-      correlationId,
-    );
+
+    // AI Diagnosis, Test Validation & Self-Healing Pull Request
+    activeStep = "diagnose_issue";
+    let selfHealResult: Awaited<ReturnType<typeof executeSelfHealingWorkflow>> | undefined;
+    try {
+      await startStep(run.id, 3, "diagnose_issue", correlationId);
+      selfHealResult = await executeSelfHealingWorkflow({
+        runId: run.id,
+        owner,
+        repository: repositoryName,
+        token,
+        issues,
+      });
+      await finishStep(
+        run.id,
+        "diagnose_issue",
+        "succeeded",
+        {
+          diagnosis: selfHealResult.diagnosis,
+          rootCause: selfHealResult.rootCause,
+          proposedFix: selfHealResult.proposedFix,
+        },
+        correlationId,
+      );
+
+      activeStep = "validate_checks";
+      await startStep(run.id, 4, "validate_checks", correlationId);
+      await finishStep(
+        run.id,
+        "validate_checks",
+        "succeeded",
+        {
+          checks: selfHealResult.checks,
+          passed: selfHealResult.checks.every((c) => c.passed),
+        },
+        correlationId,
+      );
+
+      activeStep = "create_pull_request";
+      await startStep(run.id, 5, "create_pull_request", correlationId);
+      await finishStep(
+        run.id,
+        "create_pull_request",
+        "succeeded",
+        {
+          pullRequest: selfHealResult.pullRequest,
+          prNumber: selfHealResult.pullRequest?.number,
+          prUrl: selfHealResult.pullRequest?.htmlUrl,
+        },
+        correlationId,
+      );
+    } catch (healError) {
+      console.error("Self-healing workflow stage non-fatal error:", healError);
+    }
+
+    const prNumber = selfHealResult?.pullRequest?.number;
+    const summaryMsg = prNumber
+      ? `Synced ${issues.length} issues; stored ${storedCount} in DB; AI diagnosed & created PR #${prNumber} (ready to merge).`
+      : `Fetched ${issues.length}; upserted ${writtenCount}; ${storedCount} stored.`;
+
+    await finishRun(run.id, "succeeded", summaryMsg, correlationId);
 
     return NextResponse.json(
       {
@@ -145,6 +213,9 @@ export async function POST(request: Request) {
         upsertedCount: writtenCount,
         storedCount,
         repository,
+        diagnosis: selfHealResult?.diagnosis,
+        checks: selfHealResult?.checks,
+        pullRequest: selfHealResult?.pullRequest,
         correlationId,
       },
       { headers: { "Cache-Control": "no-store" } },
@@ -176,6 +247,9 @@ export async function POST(request: Request) {
           : pgCode || "sync_failed";
     let incidentId: string | undefined;
     let incidentCaptureFailed = false;
+    let driftPullRequest: import("@/lib/github").PullRequestResult | undefined;
+    let driftDiagnosis: string | undefined;
+
     try {
       await finishStep(
         run.id,
@@ -219,18 +293,41 @@ export async function POST(request: Request) {
         } catch {
           incidentCaptureFailed = true;
         }
+
+        // Generate self-healing Pull Request for schema drift
+        try {
+          const driftHeal = await executeSelfHealingWorkflow({
+            runId: run.id,
+            owner,
+            repository: repositoryName,
+            token,
+            issues: [],
+            schemaIncident: {
+              errorCode: "42703",
+              safeSummary: "The destination schema is missing the expected issue_title field.",
+              expectedColumn: "issue_title",
+            },
+          });
+          driftPullRequest = driftHeal.pullRequest;
+          driftDiagnosis = driftHeal.diagnosis;
+        } catch (driftPrErr) {
+          console.error("Failed to generate drift self-heal PR:", driftPrErr);
+        }
       }
       if (incidentCaptureFailed) {
         safeMessage =
           "A schema-drift failure was detected, but its incident record could not be persisted.";
       } else if (schemaDrift && incidentId) {
         safeMessage =
-          "The destination schema is missing the expected issue_title field. A schema-drift incident was recorded.";
+          "The destination schema is missing the expected issue_title field. A schema-drift incident and self-healing PR were prepared.";
       }
       await finishRun(run.id, "failed", safeMessage, correlationId);
     } catch {
       // Preserve the original safe failure response if persistence is unavailable.
     }
-    return errorResponse(safeMessage, 502, correlationId, incidentId ? { incidentId } : undefined);
+    return errorResponse(safeMessage, 502, correlationId, {
+      ...(incidentId ? { incidentId } : {}),
+      ...(driftPullRequest ? { pullRequest: driftPullRequest, diagnosis: driftDiagnosis } : {}),
+    });
   }
 }
