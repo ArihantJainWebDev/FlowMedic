@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Background, Controls, ReactFlow, type Node, type Edge } from "@xyflow/react";
+import Link from "next/link";
+import { Background, Controls, Position, ReactFlow, type Node, type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 type Step = {
@@ -8,6 +9,12 @@ type Step = {
   status: string;
   duration_ms: number | null;
   error_code: string | null;
+  safe_output?: {
+    message?: string;
+    fetchedCount?: number;
+    writtenCount?: number;
+    storedCount?: number;
+  } | null;
 };
 type Run = {
   id: string;
@@ -62,6 +69,8 @@ const labels: Record<string, string> = {
   replay_failed: "Replay failed",
 };
 export function RecoveryStudio() {
+  const [view, setView] = useState("canvas");
+  const [showRecovery, setShowRecovery] = useState(false);
   const [draft, setDraft] = useState("");
   const [token, setToken] = useState("");
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -137,7 +146,10 @@ export function RecoveryStudio() {
   async function perform(action: string) {
     if (!token || busy) return;
     setBusy(action);
-    if (action === "sync") { setSelected(""); setDetail(null); }
+    if (action === "sync") {
+      setSelected("");
+      setDetail(null);
+    }
     setError("");
     try {
       const endpoint =
@@ -181,7 +193,7 @@ export function RecoveryStudio() {
     fetchStatus,
     fetchStatus === "succeeded" ? "succeeded" : "queued",
     writeStatus,
-    detail ? "succeeded" : "queued",
+    detail ? "succeeded" : run?.status === "failed" ? "queued" : "queued",
     state === "diagnosing" ? "running" : proposal ? "succeeded" : "queued",
     proposal ? (proposal.validation.passed ? "succeeded" : "failed") : "queued",
     state === "rejected"
@@ -191,15 +203,27 @@ export function RecoveryStudio() {
         : "queued",
     state === "recovered" ? "succeeded" : state === "replay_failed" ? "failed" : "queued",
   ];
+  const recoveryVisible = Boolean(detail || run?.status === "failed" || showRecovery);
   const nodes: Node[] = titles.map((title, index) => ({
     id: String(index),
-    position: { x: index < 3 ? index * 250 : (index - 3) * 235, y: index < 3 ? 20 : 230 },
+    sourcePosition: index === 2 || index === 5 ? Position.Bottom : index === 6 ? Position.Left : Position.Right,
+    targetPosition: index === 3 || index === 6 ? Position.Top : index === 7 ? Position.Right : Position.Left,
+    position: [
+      { x: 30, y: 35 },
+      { x: 320, y: 35 },
+      { x: 610, y: 35 },
+      { x: 610, y: 230 },
+      { x: 900, y: 230 },
+      { x: 1190, y: 230 },
+      { x: 1190, y: 430 },
+      { x: 900, y: 430 },
+    ][index],
     data: {
       label: (
         <div className="live-node">
           <small>STEP {String(index + 1).padStart(2, "0")}</small>
           <strong>{title}</strong>
-          <span>{labels[states[index]] || states[index]}</span>
+          <span>{index >= 3 && run?.status === "succeeded" ? "Not needed" : labels[states[index]] || states[index]}</span>
         </div>
       ),
     },
@@ -218,19 +242,36 @@ export function RecoveryStudio() {
     id: `${a}-${b}`,
     source: String(a),
     target: String(b),
+    type: "smoothstep",
+    sourcePosition:
+      a === 2 && b === 3
+        ? Position.Bottom
+        : a === 5 && b === 6
+          ? Position.Bottom
+          : a === 6 && b === 7
+            ? Position.Left
+            : Position.Right,
+    targetPosition:
+      a === 2 && b === 3
+        ? Position.Top
+        : a === 5 && b === 6
+          ? Position.Top
+          : a === 6 && b === 7
+            ? Position.Right
+            : Position.Left,
     animated: states[b] === "running",
     style: { stroke: states[b] === "failed" ? "#ce5366" : "#9caee0", strokeWidth: 2 },
   }));
   return (
-    <div className="studio-shell">
+    <div className="studio-shell" data-view={view}>
       <aside className="studio-sidebar">
-        <a className="studio-brand" href="/">
+        <Link className="studio-brand" href="/">
           ✳ FLOWMEDIC<span>LIVE RECOVERY STUDIO</span>
-        </a>
+        </Link>
         <p className="overline">WORKSPACE</p>
-        <a href="#canvas">◈ Recovery canvas</a>
-        <a href="#history">◷ Run history</a>
-        <a href="#inspector">◇ Incident inspector</a>
+        <button type="button" className={view === "canvas" ? "nav-active" : ""} aria-pressed={view === "canvas"} onClick={() => setView("canvas")}>◈ Recovery canvas</button>
+        <button type="button" className={view === "history" ? "nav-active" : ""} aria-pressed={view === "history"} onClick={() => setView("history")}>◷ Run history</button>
+        <button type="button" className={view === "inspector" ? "nav-active" : ""} aria-pressed={view === "inspector"} onClick={() => setView("inspector")}>◇ Incident inspector</button>
         <div className="studio-sidebar-bottom">
           Demo workspace
           <br />
@@ -266,7 +307,7 @@ export function RecoveryStudio() {
             <div>
               <h2>Open your recovery workspace</h2>
               <p>
-                Enter your operator run token. It stays in memory until you disconnect or reload.
+                Presenter access: enter your operator token before the demo. It stays in memory until you disconnect or reload. Viewers do not need this secret.
               </p>
             </div>
             <input
@@ -302,7 +343,7 @@ export function RecoveryStudio() {
         ) : null}
         {error && (
           <p className="studio-alert" role="alert">
-            {error} · Displayed data may be stale. Refresh to retry.
+            {error} · Refresh to retry.
           </p>
         )}
         <div className="studio-workspace">
@@ -316,14 +357,16 @@ export function RecoveryStudio() {
                     : "Your real workflow will appear here"}
                 </p>
               </div>
+              <button type="button" onClick={() => setShowRecovery((value) => !value)}>{showRecovery ? "Hide recovery path" : "Show recovery path"}</button>
               <span className="studio-badge">
-                {states.filter((s) => s === "succeeded").length} / 8 stages complete
+                {run?.status === "succeeded" ? "Sync complete · recovery not needed" : detail ? `${states.slice(3).filter((s) => s === "succeeded").length} / 5 recovery stages complete` : `${states.slice(0, 3).filter((s) => s === "succeeded").length} / 3 sync stages complete`}
               </span>
             </div>
-            <div className="studio-graph">
+            <div className="studio-graph studio-graph-recovery">
               <ReactFlow
-                nodes={nodes}
-                edges={edges}
+                key={`${run?.id || "empty"}-${recoveryVisible}`}
+                nodes={recoveryVisible ? nodes : nodes.slice(0, 3)}
+                edges={recoveryVisible ? edges : edges.filter((edge) => Number(edge.target) < 3)}
                 fitView
                 nodesDraggable={false}
                 nodesConnectable={false}
@@ -340,7 +383,7 @@ export function RecoveryStudio() {
                   <span>
                     {states[i] === "succeeded" ? "✓" : states[i] === "failed" ? "!" : i + 1}
                   </span>
-                  {title}
+                  {title}{i >= 3 && run?.status === "succeeded" ? " · Not needed" : ""}
                 </div>
               ))}
             </div>
@@ -352,6 +395,9 @@ export function RecoveryStudio() {
           </section>
           <aside id="inspector" className="studio-card studio-inspector">
             <p className="overline">RUN INSPECTOR</p>
+            {view === "inspector" && workspace?.incidents.map((incident) => (
+              <button key={incident.id} className="secondary" onClick={() => {setSelected(incident.run_id); setDetail(null);}}>{incident.status.replaceAll("_", " ")} · {incident.run_id.slice(0, 8)}</button>
+            ))}
             {detail ? (
               <>
                 <h2>{labels[detail.status] || detail.status.replaceAll("_", " ")}</h2>
@@ -393,12 +439,20 @@ export function RecoveryStudio() {
                           <input
                             type="checkbox"
                             checked={confirm === `${proposal.proposal_hash}:${detail.version}`}
-                            onChange={(e) => setConfirm(e.target.checked ? `${proposal.proposal_hash}:${detail.version}` : "")}
+                            onChange={(e) =>
+                              setConfirm(
+                                e.target.checked
+                                  ? `${proposal.proposal_hash}:${detail.version}`
+                                  : "",
+                              )
+                            }
                           />{" "}
                           I reviewed this mapping and approve replay of the original issue snapshot.
                         </label>
                         <button
-                          disabled={confirm !== `${proposal.proposal_hash}:${detail.version}` || !!busy}
+                          disabled={
+                            confirm !== `${proposal.proposal_hash}:${detail.version}` || !!busy
+                          }
                           onClick={() => void perform("approve")}
                         >
                           Approve this proposal
@@ -429,12 +483,42 @@ export function RecoveryStudio() {
                   ))}
                 </ol>
               </>
+            ) : run?.status === "failed" ? (
+              <div className="studio-failure">
+                <span className="studio-failure-mark">!</span>
+                <h2>
+                  Run failed at{" "}
+                  {run.steps.find((s) => s.status === "failed")?.step_key?.replaceAll("_", " ") ||
+                    "a saved step"}
+                </h2>
+                <p>
+                  {run.steps.find((s) => s.status === "failed")?.safe_output?.message ||
+                    run.summary ||
+                    "The run stopped. Check the safe step details."}
+                </p>
+                {run.steps.find((s) => s.status === "failed")?.error_code && (
+                  <code>Error code {run.steps.find((s) => s.status === "failed")?.error_code}</code>
+                )}
+                {run.steps.find((s) => s.status === "failed")?.error_code === "42703" &&
+                  run.steps.find((s) => s.status === "failed")?.step_key === "fetch_issues" && (
+                    <p>
+                      Likely setup issue: migration 0004 adds the source snapshot column required by
+                      this run. Apply it in Neon, restart the app, then start a fresh run.
+                    </p>
+                  )}
+                <p>
+                  Run {run.id}. The incident panel appears only when FlowMedic successfully records
+                  a supported schema drift incident.
+                </p>
+              </div>
             ) : (
               <div className="studio-empty">
                 <span>✳</span>
-                <h2>{run ? "No incident for this run" : "Ready when you are"}</h2>
+                <h2>{run?.status === "succeeded" ? "All issues synced" : run ? "No incident for this run" : "Ready when you are"}</h2>
                 <p>
-                  {run
+                  {run?.status === "succeeded"
+                    ? "This run completed successfully. Recovery is only activated when a supported integration failure is captured."
+                    : run
                     ? "Sync results and recovery evidence appear here."
                     : "Connect your operator session and run the workflow."}
                 </p>
@@ -456,6 +540,7 @@ export function RecoveryStudio() {
                   key={r.id}
                   onClick={() => {
                     setSelected(r.id);
+                    setView("canvas");
                     setDetail(null);
                     setConfirm("");
                   }}

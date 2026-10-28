@@ -4,10 +4,18 @@ All notable implementation and documentation changes are recorded here. Keep ent
 
 ## Unreleased
 
+- Corrected the actual sidebar anchors to switch views; history opens the selected run, and inspector view lists captured incidents. Healthy runs show sync complete / recovery not needed, and the default canvas focuses on the three sync nodes. Recovery path can be shown explicitly. TypeScript passed; no browser acceptance claimed.
+
+- UI/setup follow-up: sidebar now switches canvas/history/inspector views, React Flow controls have explicit icon colors, and node handles have correct connection directions. Sync preflight checks source_snapshot before starting a run and reports missing migration 0004 explicitly. TypeScript passed; browser retest and live migration remain pending.
+
+
+- Fixed the Recovery Studio’s missing-incident failure view: failed runs now show their saved safe step message, code, and likely migration guidance. Adjusted the workflow canvas into distinct source and recovery lanes with explicit edge anchors and clearer controls. User logs showed SQLSTATE `42703` on `fetch_issues`; because Phase 04 added a `source_snapshot` write, migration 0004 is the likely missing database change. This is distinct from the intended schema-drift incident, which occurs during the issue upsert after Phase 04 setup is applied.
+
 ### Phase 04–05 implementation
 - Added bound approval/rejection, original snapshots, one-attempt transactional replay with destination readback and audit, action API and migration 0004.
 - Added light React Flow workspace, protected history, persisted progress, proposal inspector and bounded polling.
 - Verified TypeScript. No live migration/replay or browser acceptance performed; both phases remain IN PROGRESS.
+- Verification follow-up: Focused ESLint passed. Production build was attempted and failed creating `.next/types/app/api` with Windows `EPERM`, likely because the running dev server owns the shared build directory; it was not stopped. No live migration or replay was run.
 - See docs/TEAMMATE_HANDOFF.md. Apply 0004 before further syncs.
 
 

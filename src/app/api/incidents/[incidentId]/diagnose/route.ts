@@ -11,6 +11,8 @@ import {
 import { requestRepairProposal, ProposalModelError } from "@/lib/llm";
 import { validateRepairProposal } from "@/lib/repair-validation";
 
+export const maxDuration = 30;
+
 type RouteContext = { params: Promise<{ incidentId: string }> };
 
 function responseError(message: string, status: number, correlationId: string) {

@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-10-28T09:00:17.657Z",
+  "checks": [
+    {
+      "label": "Explicit acceptance opt-in",
+      "passed": true
+    },
+    {
+      "label": "Dedicated demo repository",
+      "passed": true
+    },
+    {
+      "label": "Capture real drift incident",
+      "passed": true
+    },
+    {
+      "label": "Live Gemini proposal validates",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Replay denied before approval",
+      "passed": true
+    },
+    {
+      "label": "Altered hash denied",
+      "passed": true
+    },
+    {
+      "label": "Stale version denied",
+      "passed": true
+    },
+    {
+      "label": "Unauthenticated action denied",
+      "passed": true
+    },
+    {
+      "label": "Cross-origin action denied",
+      "passed": true
+    },
+    {
+      "label": "Concurrent approval accepts exactly once",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Concurrent replay recovers exactly once",
+      "passed": true
+    },
+    {
+      "label": "Duplicate replay denied",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Recovered state and verified audit persist",
+      "passed": true
+    },
+    {
+      "label": "Replay retains six unique issue rows",
+      "passed": true
+    },
+    {
+      "label": "One verified replay attempt persisted",
+      "passed": true
+    },
+    {
+      "label": "Capture real drift incident",
+      "passed": true
+    },
+    {
+      "label": "Live Gemini proposal validates",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Proposal rejection accepted",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Rejected proposal cannot replay",
+      "passed": true
+    }
+  ],
+  "incidents": [
+    "09248149-e0f2-4499-a2e5-7d2d61c14cfc",
+    "2fe22e78-3ccc-4bd5-b0a6-de48f835acfb"
+  ]
+}
