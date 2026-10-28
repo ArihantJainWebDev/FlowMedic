@@ -257,10 +257,46 @@ export function RecoveryStudio() {
   }
 
   const prStep = run?.steps.find((s) => s.step_key === "create_pull_request");
-  const stepPr = prStep?.safe_output?.pullRequest as
-    | { number: number; htmlUrl: string; title: string; head?: string; branch?: string }
-    | undefined;
-  const activePR = latestPR || stepPr;
+  const stepPr =
+    prStep?.safe_output?.pullRequest ||
+    (prStep?.safe_output?.prNumber
+      ? {
+          number: prStep.safe_output.prNumber,
+          htmlUrl:
+            prStep.safe_output.prUrl ||
+            `https://github.com/${customRepo}/pull/${prStep.safe_output.prNumber}`,
+          title: `🤖 [FlowMedic Self-Heal] Automated Repair #${prStep.safe_output.prNumber}`,
+          head: `flowmedic/self-heal-${run?.id.slice(0, 8)}`,
+          branch: `flowmedic/self-heal-${run?.id.slice(0, 8)}`,
+          base: "main",
+          state: "open",
+        }
+      : undefined);
+
+  const anyRunPrStep = workspace?.runs
+    ?.flatMap((r) => r.steps)
+    .find(
+      (s) =>
+        s.step_key === "create_pull_request" &&
+        (s.safe_output?.pullRequest || s.safe_output?.prNumber),
+    );
+  const fallbackWorkspacePR =
+    anyRunPrStep?.safe_output?.pullRequest ||
+    (anyRunPrStep?.safe_output?.prNumber
+      ? {
+          number: anyRunPrStep.safe_output.prNumber,
+          htmlUrl:
+            anyRunPrStep.safe_output.prUrl ||
+            `https://github.com/${customRepo}/pull/${anyRunPrStep.safe_output.prNumber}`,
+          title: `🤖 [FlowMedic Self-Heal] Automated Repair #${anyRunPrStep.safe_output.prNumber}`,
+          head: "flowmedic/self-heal",
+          branch: "flowmedic/self-heal",
+          base: "main",
+          state: "open",
+        }
+      : undefined);
+
+  const activePR = stepPr || latestPR || fallbackWorkspacePR;
   const isPrMerged = activePR ? Boolean(mergedPrs[activePR.number]) : false;
 
   const fetchStatus = run?.steps.find((s) => s.step_key === "fetch_issues")?.status || "queued";
