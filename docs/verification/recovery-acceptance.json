@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-28T09:00:17.657Z",
+  "timestamp": "2026-10-28T09:05:33.997Z",
   "checks": [
     {
       "label": "Explicit acceptance opt-in",
@@ -11,6 +11,10 @@
     },
     {
       "label": "Capture real drift incident",
+      "passed": true
+    },
+    {
+      "label": "Repeated failed run key creates no duplicate incident",
       "passed": true
     },
     {
@@ -78,6 +82,10 @@
       "passed": true
     },
     {
+      "label": "Repeated failed run key creates no duplicate incident",
+      "passed": true
+    },
+    {
       "label": "Live Gemini proposal validates",
       "passed": true
     },
@@ -96,10 +104,56 @@
     {
       "label": "Rejected proposal cannot replay",
       "passed": true
+    },
+    {
+      "label": "Capture real drift incident",
+      "passed": true
+    },
+    {
+      "label": "Repeated failed run key creates no duplicate incident",
+      "passed": true
+    },
+    {
+      "label": "Live Gemini proposal validates",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Failure-case proposal approved",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Database failure produces terminal replay_failed",
+      "passed": true
+    },
+    {
+      "label": "Failed replay rolls back destination writes",
+      "passed": true
+    },
+    {
+      "label": "Read incident detail",
+      "passed": true
+    },
+    {
+      "label": "Failure state and audit persist",
+      "passed": true
+    },
+    {
+      "label": "Terminal failed replay cannot repeat",
+      "passed": true
     }
   ],
   "incidents": [
-    "09248149-e0f2-4499-a2e5-7d2d61c14cfc",
-    "2fe22e78-3ccc-4bd5-b0a6-de48f835acfb"
-  ]
+    "61f89586-d59d-4f0a-98e5-1bf392806102",
+    "a2c05e2b-0ff6-4e1d-9c70-b2bdc526dd75",
+    "2bc997ed-9d02-41e8-9235-dfba4d80951e"
+  ],
+  "completed": true
 }

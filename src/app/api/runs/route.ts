@@ -67,9 +67,21 @@ export async function POST(request: Request) {
   const repository = `${owner}/${repositoryName}`.toLowerCase();
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const columns = await sql`SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_runs' AND column_name='source_snapshot'`;
-    if (!columns.length) return errorResponse("Database update required: apply db/migrations/0004_approval_replay.sql in Neon, then run again.", 503, correlationId);
-  } catch { return errorResponse("Could not check database setup. Check Neon connectivity.", 503, correlationId); }
+    const columns =
+      await sql`SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_runs' AND column_name='source_snapshot'`;
+    if (!columns.length)
+      return errorResponse(
+        "Database update required: apply db/migrations/0004_approval_replay.sql in Neon, then run again.",
+        503,
+        correlationId,
+      );
+  } catch {
+    return errorResponse(
+      "Could not check database setup. Check Neon connectivity.",
+      503,
+      correlationId,
+    );
+  }
 
   let run: Awaited<ReturnType<typeof createRun>>;
   try {

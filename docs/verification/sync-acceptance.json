@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-10-28T09:07:41.626Z",
+  "checks": [
+    {
+      "label": "Configured health",
+      "passed": true
+    },
+    {
+      "label": "Health excludes secret values",
+      "passed": true
+    },
+    {
+      "label": "Workspace requires authentication",
+      "passed": true
+    },
+    {
+      "label": "Incident list requires authentication",
+      "passed": true
+    },
+    {
+      "label": "Final normal sync stores six",
+      "passed": true
+    },
+    {
+      "label": "Same run key reused",
+      "passed": true
+    },
+    {
+      "label": "Repeat sync remains six",
+      "passed": true
+    },
+    {
+      "label": "Workspace excludes source snapshot",
+      "passed": true
+    },
+    {
+      "label": "Original destination schema restored",
+      "passed": true
+    },
+    {
+      "label": "Temporary test constraint removed",
+      "passed": true
+    }
+  ],
+  "runId": "b4232349-2ed4-4258-a927-fcd0892b987f",
+  "storedCount": 6
+}

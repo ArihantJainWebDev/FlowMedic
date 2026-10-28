@@ -854,3 +854,5 @@ h1 {
 .studio-shell[data-view=inspector] .studio-inspector{max-width:900px;width:100%;min-height:400px}
 @media(max-width:1100px){.studio-sidebar{display:flex;width:170px;padding:20px 10px}.studio-main{padding-left:18px;padding-right:18px}}
 @media(max-width:650px){.studio-shell{display:block}.studio-sidebar{width:100%;flex-direction:row;gap:4px;flex-wrap:wrap;border-bottom:1px solid #e0e6f2;padding:10px}.studio-sidebar .overline,.studio-sidebar-bottom,.studio-brand{display:none}.studio-shell .studio-sidebar>button{font-size:11px;padding:10px}}
+
+.studio-shell .studio-card-head>button{background:#f4f6fd;color:#53668e;border:1px solid #e0e6f2;font-size:11px;padding:8px 11px;white-space:nowrap}.studio-card-head{flex-wrap:wrap}

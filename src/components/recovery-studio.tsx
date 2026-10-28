@@ -193,7 +193,7 @@ export function RecoveryStudio() {
     fetchStatus,
     fetchStatus === "succeeded" ? "succeeded" : "queued",
     writeStatus,
-    detail ? "succeeded" : run?.status === "failed" ? "queued" : "queued",
+    detail ? "succeeded" : "queued",
     state === "diagnosing" ? "running" : proposal ? "succeeded" : "queued",
     proposal ? (proposal.validation.passed ? "succeeded" : "failed") : "queued",
     state === "rejected"
@@ -206,8 +206,10 @@ export function RecoveryStudio() {
   const recoveryVisible = Boolean(detail || run?.status === "failed" || showRecovery);
   const nodes: Node[] = titles.map((title, index) => ({
     id: String(index),
-    sourcePosition: index === 2 || index === 5 ? Position.Bottom : index === 6 ? Position.Left : Position.Right,
-    targetPosition: index === 3 || index === 6 ? Position.Top : index === 7 ? Position.Right : Position.Left,
+    sourcePosition:
+      index === 2 || index === 5 ? Position.Bottom : index === 6 ? Position.Left : Position.Right,
+    targetPosition:
+      index === 3 || index === 6 ? Position.Top : index === 7 ? Position.Right : Position.Left,
     position: [
       { x: 30, y: 35 },
       { x: 320, y: 35 },
@@ -223,7 +225,11 @@ export function RecoveryStudio() {
         <div className="live-node">
           <small>STEP {String(index + 1).padStart(2, "0")}</small>
           <strong>{title}</strong>
-          <span>{index >= 3 && run?.status === "succeeded" ? "Not needed" : labels[states[index]] || states[index]}</span>
+          <span>
+            {index >= 3 && run?.status === "succeeded"
+              ? "Not needed"
+              : labels[states[index]] || states[index]}
+          </span>
         </div>
       ),
     },
@@ -269,9 +275,30 @@ export function RecoveryStudio() {
           ✳ FLOWMEDIC<span>LIVE RECOVERY STUDIO</span>
         </Link>
         <p className="overline">WORKSPACE</p>
-        <button type="button" className={view === "canvas" ? "nav-active" : ""} aria-pressed={view === "canvas"} onClick={() => setView("canvas")}>◈ Recovery canvas</button>
-        <button type="button" className={view === "history" ? "nav-active" : ""} aria-pressed={view === "history"} onClick={() => setView("history")}>◷ Run history</button>
-        <button type="button" className={view === "inspector" ? "nav-active" : ""} aria-pressed={view === "inspector"} onClick={() => setView("inspector")}>◇ Incident inspector</button>
+        <button
+          type="button"
+          className={view === "canvas" ? "nav-active" : ""}
+          aria-pressed={view === "canvas"}
+          onClick={() => setView("canvas")}
+        >
+          ◈ Recovery canvas
+        </button>
+        <button
+          type="button"
+          className={view === "history" ? "nav-active" : ""}
+          aria-pressed={view === "history"}
+          onClick={() => setView("history")}
+        >
+          ◷ Run history
+        </button>
+        <button
+          type="button"
+          className={view === "inspector" ? "nav-active" : ""}
+          aria-pressed={view === "inspector"}
+          onClick={() => setView("inspector")}
+        >
+          ◇ Incident inspector
+        </button>
         <div className="studio-sidebar-bottom">
           Demo workspace
           <br />
@@ -307,7 +334,8 @@ export function RecoveryStudio() {
             <div>
               <h2>Open your recovery workspace</h2>
               <p>
-                Presenter access: enter your operator token before the demo. It stays in memory until you disconnect or reload. Viewers do not need this secret.
+                Presenter access: enter your operator token before the demo. It stays in memory
+                until you disconnect or reload. Viewers do not need this secret.
               </p>
             </div>
             <input
@@ -324,7 +352,14 @@ export function RecoveryStudio() {
         ) : (
           <div className="studio-session">
             <span>{workspace?.repository || "Loading repository…"}</span>
-            <button onClick={() => setRefresh((v) => v + 1)}>Refresh</button>
+            <button
+              onClick={() => {
+                setError("");
+                setRefresh((v) => v + 1);
+              }}
+            >
+              Refresh
+            </button>
             <button
               onClick={() => {
                 setToken("");
@@ -357,9 +392,15 @@ export function RecoveryStudio() {
                     : "Your real workflow will appear here"}
                 </p>
               </div>
-              <button type="button" onClick={() => setShowRecovery((value) => !value)}>{showRecovery ? "Hide recovery path" : "Show recovery path"}</button>
+              <button type="button" onClick={() => setShowRecovery((value) => !value)}>
+                {showRecovery ? "Hide recovery path" : "Show recovery path"}
+              </button>
               <span className="studio-badge">
-                {run?.status === "succeeded" ? "Sync complete · recovery not needed" : detail ? `${states.slice(3).filter((s) => s === "succeeded").length} / 5 recovery stages complete` : `${states.slice(0, 3).filter((s) => s === "succeeded").length} / 3 sync stages complete`}
+                {run?.status === "succeeded"
+                  ? "Sync complete · recovery not needed"
+                  : detail
+                    ? `${states.slice(3).filter((s) => s === "succeeded").length} / 5 recovery stages complete`
+                    : `${states.slice(0, 3).filter((s) => s === "succeeded").length} / 3 sync stages complete`}
               </span>
             </div>
             <div className="studio-graph studio-graph-recovery">
@@ -383,7 +424,8 @@ export function RecoveryStudio() {
                   <span>
                     {states[i] === "succeeded" ? "✓" : states[i] === "failed" ? "!" : i + 1}
                   </span>
-                  {title}{i >= 3 && run?.status === "succeeded" ? " · Not needed" : ""}
+                  {title}
+                  {i >= 3 && run?.status === "succeeded" ? " · Not needed" : ""}
                 </div>
               ))}
             </div>
@@ -395,9 +437,19 @@ export function RecoveryStudio() {
           </section>
           <aside id="inspector" className="studio-card studio-inspector">
             <p className="overline">RUN INSPECTOR</p>
-            {view === "inspector" && workspace?.incidents.map((incident) => (
-              <button key={incident.id} className="secondary" onClick={() => {setSelected(incident.run_id); setDetail(null);}}>{incident.status.replaceAll("_", " ")} · {incident.run_id.slice(0, 8)}</button>
-            ))}
+            {view === "inspector" &&
+              workspace?.incidents.map((incident) => (
+                <button
+                  key={incident.id}
+                  className="secondary"
+                  onClick={() => {
+                    setSelected(incident.run_id);
+                    setDetail(null);
+                  }}
+                >
+                  {incident.status.replaceAll("_", " ")} · {incident.run_id.slice(0, 8)}
+                </button>
+              ))}
             {detail ? (
               <>
                 <h2>{labels[detail.status] || detail.status.replaceAll("_", " ")}</h2>
@@ -514,13 +566,19 @@ export function RecoveryStudio() {
             ) : (
               <div className="studio-empty">
                 <span>✳</span>
-                <h2>{run?.status === "succeeded" ? "All issues synced" : run ? "No incident for this run" : "Ready when you are"}</h2>
+                <h2>
+                  {run?.status === "succeeded"
+                    ? "All issues synced"
+                    : run
+                      ? "No incident for this run"
+                      : "Ready when you are"}
+                </h2>
                 <p>
                   {run?.status === "succeeded"
                     ? "This run completed successfully. Recovery is only activated when a supported integration failure is captured."
                     : run
-                    ? "Sync results and recovery evidence appear here."
-                    : "Connect your operator session and run the workflow."}
+                      ? "Sync results and recovery evidence appear here."
+                      : "Connect your operator session and run the workflow."}
                 </p>
               </div>
             )}
