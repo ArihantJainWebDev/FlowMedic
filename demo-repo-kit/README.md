@@ -1,6 +1,8 @@
 # FlowMedic Demo Repository Kit
 
-This folder is a handoff kit for creating the **separate GitHub repository** that FlowMedic will read from. It is documentation and sample issue content only; it does not create a GitHub repository automatically.
+This folder is a handoff kit for creating the **separate GitHub repository** that FlowMedic will read from. It contains instructions, sample issue content, and an optional setup helper. The helper is not safe to run in its current form; use the manual steps below instead.
+
+> **Do not run `setup_github_repo_and_issues.py` yet.** It hardcodes an owner and local paths, sends the token in a Git push URL, and overwrites `.env.local` with a blank `DATABASE_URL` and fixed token values. It also needs write/admin access to create a repo and issues, which is different from FlowMedic's read-only runtime token. The script needs a safety rewrite before use.
 
 ## Request for the teammate
 
@@ -11,6 +13,8 @@ Please create a dedicated repository for the FlowMedic hackathon demo. Suggested
 3. Create the six synthetic GitHub issues in [`issues/`](issues/), preserving their titles and using the supplied bodies. Labels are optional.
 4. Send the operator the repository owner and repository name (for example, `octo-demo/flowmedic-demo-source`). Do not send or create a token on the operator's behalf.
 5. Confirm the operator's GitHub account can view the repository and its issues. The operator will create their own fine-grained token limited to this repo with **Issues: read** permission.
+
+For the full click-by-click sequence, use [`setup-steps/README.md`](setup-steps/README.md).
 
 ## Acceptance checklist
 

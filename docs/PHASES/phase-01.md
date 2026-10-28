@@ -9,7 +9,7 @@ Connect a least-privilege GitHub token and managed Postgres; fetch a bounded pag
 ## Checklist
 
 - [ ] Provision a dedicated demo repository/database and configure local/Vercel secrets. Use a GitHub fine-grained token with Issues: read permission for only the demo repository.
-- [x] Add versioned migration for `github_issues` and run/step tables; `issue_title` is the intentionally driftable target field. Migration still needs to be applied to Neon.
+- [x] Add versioned migration for `github_issues` and run/step tables; `issue_title` is the intentionally driftable target field. User screenshot confirms the expected tables exist in Neon; the full column definitions have not been inspected.
 - [x] Implement server-only GitHub REST client with an 8-second request timeout, maximum two pages of 50 items, and safe authorization/rate-limit errors.
 - [x] Exclude pull requests; normalize stable issue fields and cap issue body length at 4,000 characters.
 - [x] Implement parameterized Neon Postgres upsert with unique source/repository/external ID.
@@ -18,7 +18,7 @@ Connect a least-privilege GitHub token and managed Postgres; fetch a bounded pag
 
 ## Entrance criteria
 
-- Phase 00 complete; demo GitHub/Neon services and credentials are available; migration is applied.
+- Phase 00 complete; Neon is available and its expected tables are present. The dedicated demo GitHub repository and read-only GitHub token are still needed for live sync verification.
 
 ## Local setup for the live sync
 
