@@ -1,12 +1,12 @@
 # FlowMedic Demo Repository Kit
 
-This folder is a handoff kit for creating the **separate GitHub repository** that FlowMedic will read from. It contains instructions, sample issue content, and an optional setup helper. The helper is not safe to run in its current form; use the manual steps below instead.
+This folder is a handoff kit for the **separate GitHub repository** that FlowMedic will read from. The operator has provided the public repository [t4zn/flowmedic-demo-source](https://github.com/t4zn/flowmedic-demo-source). It contains setup instructions, sample issue content, and an optional setup helper. The helper is not safe to run in its current form; use the manual steps below instead.
 
 > **Do not run `setup_github_repo_and_issues.py` yet.** It hardcodes an owner and local paths, sends the token in a Git push URL, and overwrites `.env.local` with a blank `DATABASE_URL` and fixed token values. It also needs write/admin access to create a repo and issues, which is different from FlowMedic's read-only runtime token. The script needs a safety rewrite before use.
 
 ## Request for the teammate
 
-Please create a dedicated repository for the FlowMedic hackathon demo. Suggested name: `flowmedic-demo-source` (use another unique name if that is unavailable). Use a private repository if the operator account that will run FlowMedic can be granted access; a public repository is also fine if preferred. This repository is disposable demo data and must not contain real customer or personal information.
+Please create a dedicated repository for the FlowMedic hackathon demo. Suggested name: `flowmedic-demo-source` (use another unique name if that is unavailable). Since it contains only synthetic issues, a **public repository is the easiest option** if it is created under another person's account. For a private repo, prefer an account or organization the FlowMedic operator owns or belongs to; GitHub documents limitations for fine-grained personal access tokens on collaborator repositories. This repo must not contain real customer or personal information. See [GitHub fine-grained token limitations](https://docs.github.com/en/enterprise-cloud@latest/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens-limitations).
 
 1. Create the repository under the GitHub account/organization the FlowMedic operator can access.
 2. Add a short README describing it as a synthetic issue source for the FlowMedic Live demo.

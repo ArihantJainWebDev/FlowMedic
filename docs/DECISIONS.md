@@ -41,3 +41,8 @@ Follow the 8-phase timebox in `DEVELOPMENT_PLAN.md`; preserve 85 minutes for har
 
 **Status:** Accepted · **Date:** 2026-10-28  
 Create a durable run, then advance one bounded step per authenticated Route Handler invocation. Persist the step's running and terminal states before the UI advances. The browser polls persisted run/events and requests the next step; server-side state and lease checks—not browser input—control ordering and eligibility. This exposes actual progress while fitting Vercel function limits and lets an interrupted tab resume. The demo may pause if the operator closes the browser; the UI must show resume state and never imply detached processing.
+
+## D-009 — Structured diagnosis is proposal-only
+
+**Status:** Accepted · **Date:** 2026-10-28  
+Use a strict structured-output response contract and deterministic code-owned validation for Phase 03. Default to the OpenAI Responses endpoint, allow an operator-configured HTTPS compatible endpoint, and require an explicit `LLM_MODEL`. The model receives bounded incident/schema evidence without issue bodies, has no tools, and cannot execute SQL. Only `issue_title → title` is in the initial allowlist; actual schema metadata and required columns are checked before a proposal can be marked validated. A provider/API failure returns the incident to `detected` when the version-checked transition succeeds.

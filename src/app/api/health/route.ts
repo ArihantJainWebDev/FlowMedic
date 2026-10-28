@@ -21,6 +21,7 @@ export function GET(request: Request) {
         githubToken: Boolean(process.env.GITHUB_TOKEN?.trim()),
         repository: Boolean(process.env.GITHUB_OWNER?.trim() && process.env.GITHUB_REPOSITORY?.trim()),
         runToken: Boolean(process.env.FLOWMEDIC_RUN_TOKEN?.trim()),
+        llm: Boolean(process.env.LLM_API_KEY?.trim() && process.env.LLM_MODEL?.trim()),
       },
       correlationId,
       timestamp: new Date().toISOString(),

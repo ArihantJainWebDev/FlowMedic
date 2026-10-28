@@ -22,9 +22,9 @@ Connect a least-privilege GitHub token and managed Postgres; fetch a bounded pag
 
 ## Local setup for the live sync
 
-1. Create a dedicated demo GitHub repository using the [handoff kit](../../demo-repo-kit/README.md), then create a fine-grained token scoped to it with repository **Issues: read** permission.
+1. The demo repository is now identified as [t4zn/flowmedic-demo-source](https://github.com/t4zn/flowmedic-demo-source). Confirm it contains the six synthetic issues from the [handoff kit](../../demo-repo-kit/README.md), then create a fine-grained token scoped to this repository with **Issues: read** permission.
 2. Create a Neon Postgres project/database. Apply `db/migrations/0001_phase_01_source_sync.sql` to the intended demo branch using the Neon SQL Editor.
-3. Copy `.env.example` to `.env.local` and set `DATABASE_URL`, `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPOSITORY`, and a long random `FLOWMEDIC_RUN_TOKEN`. Keep every value server-side and never paste secrets into chat or commit them.
+3. Copy `.env.example` to `.env.local` and set `DATABASE_URL`, `GITHUB_TOKEN`, `GITHUB_OWNER=t4zn`, `GITHUB_REPOSITORY=flowmedic-demo-source`, and a long random `FLOWMEDIC_RUN_TOKEN`. Keep every value server-side and never paste secrets into chat or commit them. The public repository URL is safe to record; the GitHub token is still required by the current application code.
 4. Start the app locally. In Recovery Studio, choose **Run workflow**, enter the operator token into the masked field, and start the sync. The field is cleared when the request finishes.
 5. Confirm the returned run ID/counts and verify the rows in Neon. Repeat with a new run and confirm the unique repository/issue key keeps row count stable.
 

@@ -2,6 +2,7 @@ import "server-only";
 
 import { neon } from "@neondatabase/serverless";
 import type { NormalizedIssue } from "@/lib/github";
+import type { RepairProposal, RepairValidation, TargetColumn } from "@/lib/repair-validation";
 
 function getSql() {
   const connectionString = process.env.DATABASE_URL?.trim();
@@ -234,7 +235,7 @@ export type IncidentStatus =
 
 const allowedTransitions: Record<IncidentStatus, IncidentStatus[]> = {
   detected: ["diagnosing", "cancelled"],
-  diagnosing: ["proposal_ready", "validation_failed", "cancelled"],
+  diagnosing: ["detected", "proposal_ready", "validation_failed", "cancelled"],
   proposal_ready: ["validating", "cancelled"],
   validating: ["awaiting_approval", "validation_failed", "cancelled"],
   awaiting_approval: ["replaying", "rejected", "cancelled"],
@@ -302,5 +303,69 @@ export async function getIncident(incidentId: string, repository: string) {
     FROM audit_events WHERE entity_type = 'incident' AND entity_id = ${incidentId}
     ORDER BY created_at ASC
   `;
-  return { ...incidents[0], timeline };
+  const proposals = await sql`
+    SELECT id, incident_version, provider, model, prompt_version, schema_version,
+      proposal, validation, status, proposal_hash, latency_ms, input_tokens, output_tokens, created_at
+    FROM repair_proposals WHERE incident_id = ${incidentId}
+    ORDER BY created_at DESC LIMIT 5
+  `;
+  return { ...incidents[0], timeline, proposals };
+}
+
+export async function getTargetColumns(): Promise<TargetColumn[]> {
+  const sql = getSql();
+  const result = await sql`
+    SELECT column_name, data_type, is_nullable, column_default
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'github_issues'
+    ORDER BY ordinal_position
+  `;
+  return result.map((column) => ({
+    columnName: String(column.column_name),
+    dataType: String(column.data_type),
+    nullable: column.is_nullable === "YES",
+    hasDefault: column.column_default !== null,
+  }));
+}
+
+export async function saveRepairProposal(input: {
+  incidentId: string;
+  incidentVersion: number;
+  correlationId: string;
+  provider: string;
+  model: string;
+  promptVersion: string;
+  schemaVersion: string;
+  proposal: RepairProposal;
+  validation: RepairValidation;
+  status: "validated" | "validation_failed";
+  proposalHash: string;
+  latencyMs: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
+}) {
+  const sql = getSql();
+  const result = await sql`
+    WITH inserted AS (
+      INSERT INTO repair_proposals (
+        incident_id, incident_version, provider, model, prompt_version, schema_version,
+        proposal, validation, status, proposal_hash, latency_ms, input_tokens, output_tokens
+      ) VALUES (
+        ${input.incidentId}, ${input.incidentVersion}, ${input.provider}, ${input.model},
+        ${input.promptVersion}, ${input.schemaVersion}, ${JSON.stringify(input.proposal)}::jsonb,
+        ${JSON.stringify(input.validation)}::jsonb, ${input.status}, ${input.proposalHash},
+        ${input.latencyMs}, ${input.inputTokens}, ${input.outputTokens}
+      )
+      RETURNING id, incident_id, status
+    ), audited AS (
+      INSERT INTO audit_events (entity_type, entity_id, correlation_id, action, actor_type, details)
+      SELECT 'incident', incident_id, ${input.correlationId}, 'repair_proposal_created', 'system',
+        jsonb_build_object('proposalId', id, 'validationStatus', status, 'schemaVersion', ${input.schemaVersion})
+      FROM inserted
+      RETURNING id
+    )
+    SELECT id FROM inserted
+  `;
+  if (!result[0]) throw new Error("Could not persist the repair proposal.");
+  return result[0].id as string;
 }

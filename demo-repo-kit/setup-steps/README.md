@@ -8,7 +8,7 @@ Follow these steps to create the separate GitHub repository FlowMedic will read.
 2. Choose **New repository**.
 3. Set the name to `flowmedic-demo-source` (choose another name if it is unavailable).
 4. Add the description: `Synthetic GitHub issue source for the FlowMedic Live hackathon demo.`
-5. Choose **Private** if the FlowMedic operator can be granted access. Public is also acceptable because the repository contains only synthetic content.
+5. Choose **Public** for the simplest setup because the repository contains synthetic content only. If using **Private**, create it under an account/organization the FlowMedic operator owns or belongs to. A private repository owned by another personal account may run into GitHub fine-grained token collaborator limitations; see [GitHub’s token limitations](https://docs.github.com/en/enterprise-cloud@latest/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens-limitations).
 6. Enable Issues. A README can be initialized with the repository or added afterward.
 7. Create the repository. Do not add secrets, credentials, or real customer data.
 

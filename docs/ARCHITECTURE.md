@@ -97,6 +97,10 @@ For trustworthy live progress on Vercel, model the visible workflow as short, se
 
 This keeps each invocation bounded and makes the step rail reflect database facts. If the tab closes, the durable run remains resumable; reopening can continue from the next eligible step. A lease-expiry/reconciliation path handles abandoned `running` steps conservatively and records recovery in the audit log. For a long single step, persist its active status first; the UI shows the real active step and elapsed time, not a fabricated percentage. Never rely on fire-and-forget work after returning the HTTP response.
 
+### Phase 03 model boundary
+
+The Phase 03 diagnosis endpoint sends only a bounded incident summary, code-owned schema-drift fields, and destination column metadata. It omits issue bodies and raw database error text. The model uses a strict structured-output schema and has no tools. Its proposal is still untrusted: deterministic code validates the one supported mapping (`issue_title → title`), actual target existence/type, duplicate targets, safe identifiers, and required-column coverage before saving the validation result. This phase performs no writes to the destination table and does not execute model-provided SQL.
+
 ## 7. Safety and security requirements
 
 - Keep GitHub token, LLM key, `DATABASE_URL`, auth secrets, webhook secret, and `CRON_SECRET` server-only. Never prefix with `NEXT_PUBLIC_`; never return them to the browser or log them.

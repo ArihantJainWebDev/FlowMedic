@@ -5,6 +5,15 @@ All notable implementation and documentation changes are recorded here. Keep ent
 ## Unreleased
 
 - Created the initial implementation-ready architecture, model-routing guidance, phased plan, and UI design documentation.
+- Recorded the public demo source repository `t4zn/flowmedic-demo-source` in the Phase 01 setup guide. No credentials were added to the repository or docs.
+
+### 2026-10-28 — Phase 03: Proposal and validation foundation started
+
+- **Added:** Strict structured proposal contract, bounded server-only Responses API client, deterministic `issue_title → title` allowlist/type/required-column checks, proposal persistence migration, and protected incident diagnosis endpoint.
+- **Changed:** Incident detail now returns stored proposal history; health reports whether LLM key/model configuration is present without returning values.
+- **Verified:** No tests or live model/database calls were run in this implementation pass. Migration 0003 and a real schema-drift incident are still pending.
+- **Known issues:** Provider call behavior and accepted/rejected examples remain unverified. No automated repair, approval, or replay is possible in this phase.
+- **Phase record:** [Phase 03](docs/PHASES/phase-03.md).
 
 ### 2026-10-28 — Neon connectivity probe
 
